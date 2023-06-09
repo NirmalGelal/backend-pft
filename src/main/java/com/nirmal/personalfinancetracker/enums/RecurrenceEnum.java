@@ -4,7 +4,5 @@ public enum RecurrenceEnum {
     DAILY,
     WEEKLY,
     MONTHLY,
-    QUARTERLY,
-    SEMI_ANNUALLY,
     YEARLY
 }

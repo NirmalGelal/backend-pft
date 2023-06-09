@@ -1,10 +1,7 @@
 package com.nirmal.personalfinancetracker.model;
 
 import com.nirmal.personalfinancetracker.enums.RoleEnum;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +15,7 @@ import lombok.Setter;
 @Table(name = "ftr_user")
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "usr_id")
     private int id;
 
@@ -30,8 +28,9 @@ public class User {
     @Column(name = "usr_password")
     private String password;
 
-    @Column(name = "usr_role")
-    private RoleEnum role;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "rl_id")
+    private Role roleId;
 
     @Column(name = "usr_phone_number")
     private String phoneNumber;

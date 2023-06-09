@@ -18,21 +18,23 @@ import java.time.LocalDateTime;
 @Table(name = "ftr_expense")
 public class Expense {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "exp_id")
     private int id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @Column(name = "usr_id")
+    @JoinColumn(name = "usr_id")
     private User user;
 
     @Column(name = "exp_amount")
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "exp_category")
     private ExpenseEnum category;
 
-    @Column(name = "exp_date")
-    private LocalDateTime date;
+    @Column(name = "exp_created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "exp_description")
     private String description;

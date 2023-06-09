@@ -19,20 +19,22 @@ import java.time.LocalDateTime;
 public class Income {
     @Id
     @Column(name = "inc_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @Column(name = "usr_id")
+    @JoinColumn(name = "usr_id")
     private User user;
 
     @Column(name = "inc_amount")
     private BigDecimal amount;
 
     @Column(name = "inc_category")
+    @Enumerated(EnumType.STRING)
     private IncomeEnum category;
 
-    @Column(name = "inc_date")
-    private LocalDateTime date;
+    @Column(name = "inc_created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "inc_description")
     private String description;

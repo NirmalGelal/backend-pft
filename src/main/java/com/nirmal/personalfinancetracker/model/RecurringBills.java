@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -18,19 +19,24 @@ import java.math.BigDecimal;
 public class RecurringBills {
     @Id
     @Column(name = "rb_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @Column(name = "usr_id")
+    @JoinColumn(name = "usr_id")
     private User user;
 
     @Column(name = "rb_name")
     private String name;
 
     @Column(name = "rb_recurrence")
+    @Enumerated(EnumType.STRING)
     private RecurrenceEnum recurrence;
 
     @Column(name = "rb_amount")
     private BigDecimal amount;
+
+    @Column(name = "rb_created_at")
+    private LocalDateTime createdAt;
 
 }

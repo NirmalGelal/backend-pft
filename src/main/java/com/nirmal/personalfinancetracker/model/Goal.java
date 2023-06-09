@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -18,10 +19,11 @@ public class Goal {
 
     @Id
     @Column(name = "gl_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @OneToOne (fetch = FetchType.EAGER)
-    @Column(name = "usr_id")
+    @PrimaryKeyJoinColumn(name = "usr_id")
     private User user;
 
     @Column(name = "gl_goal_name")
@@ -32,4 +34,10 @@ public class Goal {
 
     @Column(name = "gl_amount_saved")
     private BigDecimal amountSaved;
+
+    @Column(name = "gl_status")
+    private String status;
+
+    @Column(name = "gl_created_at")
+    private LocalDateTime createdAt;
 }
