@@ -9,6 +9,7 @@ import com.nirmal.personalfinancetracker.service.impl.ExpenseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +36,18 @@ public class ExpenseController {
         response.setStatus(false);
         response.setData(null);
         response.setMessage("database is empty");
-        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatusCode.valueOf(204));
+    }
+
+    @GetMapping("/expenses/{id}")
+    public ResponseEntity<Response<Expense>> viewExpense (@PathVariable int id){
+        Response<Expense> response = new Response<>();
+        Expense expense = expenseServiceImpl.viewExpense(id);
+        response.setData(expense);
+        response.setMessage("expense retrieved successfully");
+        response.setStatus(true);
+        return new ResponseEntity<>(response,HttpStatus.OK);
+
     }
 
     @PostMapping("/expense")
@@ -45,10 +57,10 @@ public class ExpenseController {
         response.setMessage("expense added");
         response.setData(expense1);
         response.setStatus(true);
-        return new ResponseEntity<>(response,HttpStatus.OK);
+        return new ResponseEntity<>(response,HttpStatus.CREATED);
     }
 
-    @PostMapping("/total-expense")
+    @GetMapping("/total-expense")
     public ResponseEntity<Response<BigDecimal>> calculateTotalExpenseAtInterval(@RequestParam ExpenseEnum category,
                                                                                 @RequestParam RecurrenceEnum interval){
         Response<BigDecimal> response = new Response<>();
@@ -57,5 +69,30 @@ public class ExpenseController {
         response.setStatus(true);
         response.setMessage("total expense for "+ interval + " successfully calculated");
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PutMapping("/expense/{id}")
+    public ResponseEntity<Response<Expense>> editExpense(@PathVariable int id,@RequestBody AddExpenseDto addExpenseDto){
+        Response<Expense> response = new Response<>();
+        Expense expense = expenseServiceImpl.updateExpense(id,addExpenseDto);
+        response.setMessage("expense updated successfully");
+        response.setStatus(true);
+        response.setData(expense);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/expense/{id}")
+    public ResponseEntity<Response<String>> deleteExpense(@PathVariable int id){
+        Response<String> response = new Response<>();
+        String data = expenseServiceImpl.deleteExpense(id);
+        if(data.equals("success")){
+            response.setStatus(true);
+            response.setData(data);
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        }
+        response.setStatus(false);
+        response.setData(data);
+        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+
     }
 }

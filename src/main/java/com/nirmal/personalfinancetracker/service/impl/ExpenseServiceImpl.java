@@ -49,6 +49,12 @@ public class ExpenseServiceImpl implements ExpenseService {
 //        Pair<Expense,Boolean> expenseBooleanPair = Pair.of(expense, true);
         return expense1;
     }
+
+    @Override
+    public Expense viewExpense(int expenseId) {
+        return expenseRepository.findById(expenseId).get();
+    }
+
     public Pair<Expense, Boolean> addExpense(Expense expense, int goalId) {
         expenseRepository.save(expense);
         goalServiceImpl.addAmountToGoal(expense.getAmount(), goalId);
@@ -67,7 +73,12 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Expense updateExpense(Expense expense) {
+    public Expense updateExpense(int expenseId, AddExpenseDto addExpenseDto) {
+        Expense expense = expenseRepository.findById(expenseId).get();
+        expense.setDescription(addExpenseDto.getDescription());
+        expense.setUser(userRepository.findById(addExpenseDto.getUserId()).get());
+        expense.setAmount(addExpenseDto.getAmount());
+        expense.setCategory(addExpenseDto.getCategory());
         expenseRepository.save(expense);
         return expense;
     }
@@ -77,9 +88,9 @@ public class ExpenseServiceImpl implements ExpenseService {
         Optional<Expense> expense = expenseRepository.findById(expenseId);
         if(expense.isPresent()){
             expenseRepository.deleteById(expenseId);
-            return "expense deleted successfully.";
+            return "success";
         }
-        return "expense with id: "+expense.get().getId()+ " not present.";
+        return "expense with id: "+expenseId+ " not present.";
     }
 
     public BigDecimal totalExpenseInInterval(ExpenseEnum category, RecurrenceEnum interval){

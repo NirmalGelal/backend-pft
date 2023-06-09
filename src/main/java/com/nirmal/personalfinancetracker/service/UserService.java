@@ -6,11 +6,13 @@ import com.nirmal.personalfinancetracker.model.User;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserService {
     public User registerUser(User user);
     public List<User> viewUsers();
+    public Optional<User> viewUserById(int id);
     public String deleteUser(int id);
-    public User updateUser(User user);
+    public User updateUser(int userId, User user);
 
 }

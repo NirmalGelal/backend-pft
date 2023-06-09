@@ -23,7 +23,7 @@ public class Goal {
     private int id;
 
     @OneToOne (fetch = FetchType.EAGER)
-    @PrimaryKeyJoinColumn(name = "usr_id")
+    @JoinColumn(name = "usr_id")
     private User user;
 
     @Column(name = "gl_goal_name")
@@ -33,11 +33,11 @@ public class Goal {
     private BigDecimal totalAmount;
 
     @Column(name = "gl_amount_saved")
-    private BigDecimal amountSaved;
+    private BigDecimal amountSaved = BigDecimal.ZERO;
 
     @Column(name = "gl_status")
     private String status;
 
     @Column(name = "gl_created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

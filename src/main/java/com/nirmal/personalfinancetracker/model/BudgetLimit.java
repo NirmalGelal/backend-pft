@@ -25,7 +25,7 @@ public class BudgetLimit {
     private int id;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @PrimaryKeyJoinColumn(name = "usr_id")
+    @JoinColumn(name = "usr_id")
     private User user;
 
     @Column(name = "bl_limit")

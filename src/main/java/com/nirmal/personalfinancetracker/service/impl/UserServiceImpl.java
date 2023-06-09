@@ -22,19 +22,35 @@ public class UserServiceImpl implements UserService {
     public List<User> viewUsers(){
         return userRepository.findAll();
     }
+
+    @Override
+    public Optional<User> viewUserById(int id) {
+        return userRepository.findById(id);
+    }
+
     @Override
     public String deleteUser(int id){
         Optional<User> user = userRepository.findById(id);
         if(user.isPresent()){
             userRepository.deleteById(id);
-            return "user deleted successfully";
+            return "success";
         }
-        return "user with id: "+user.get().getId()+ " not present.";
+        return "user with id: "+id+ " not present.";
     }
     @Override
-    public User updateUser(User user){
-        userRepository.save(user);
-        return user;
+    public User updateUser(int userId, User user){
+        User user1 = userRepository.findById(userId).get();
+        if (user1 == null){
+            return null;
+        }
+        user1.setName(user.getName());
+        user1.setAddress(user.getAddress());
+        user1.setPassword(user.getPassword());
+        user1.setEmail(user.getEmail());
+        user1.setPhoneNumber(user.getPhoneNumber());
+        user1.setRoleId(user.getRoleId());
+        userRepository.save(user1);
+        return user1;
     }
 
 
