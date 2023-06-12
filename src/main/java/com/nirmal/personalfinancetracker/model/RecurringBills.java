@@ -37,6 +37,6 @@ public class RecurringBills {
     private BigDecimal amount;
 
     @Column(name = "rb_created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
 }

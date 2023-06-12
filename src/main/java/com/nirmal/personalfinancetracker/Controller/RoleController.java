@@ -1,8 +1,6 @@
 package com.nirmal.personalfinancetracker.Controller;
 
-import com.nirmal.personalfinancetracker.dto.request.AddGoalDto;
 import com.nirmal.personalfinancetracker.dto.response.Response;
-import com.nirmal.personalfinancetracker.model.Goal;
 import com.nirmal.personalfinancetracker.model.Role;
 import com.nirmal.personalfinancetracker.service.impl.RoleServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;

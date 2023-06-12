@@ -7,7 +7,6 @@ import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
 import com.nirmal.personalfinancetracker.model.Expense;
 import com.nirmal.personalfinancetracker.service.impl.ExpenseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;

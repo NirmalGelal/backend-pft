@@ -39,7 +39,7 @@ public class IncomeServiceImpl implements IncomeService {
             incomeRepository.deleteById(incomeId);
             return "income deleted successfully.";
         }
-        return "income with id: "+income.get().getId()+ " not present.";
+        return "income with id: "+incomeId+ " not present.";
     }
 
 }
