@@ -3,13 +3,10 @@ package com.nirmal.personalfinancetracker.Controller;
 import com.nirmal.personalfinancetracker.dto.request.BudgetLimitDto;
 import com.nirmal.personalfinancetracker.dto.response.Response;
 import com.nirmal.personalfinancetracker.model.BudgetLimit;
-import com.nirmal.personalfinancetracker.model.User;
-import com.nirmal.personalfinancetracker.repository.UserRepository;
 import com.nirmal.personalfinancetracker.service.impl.BudgetLimitServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

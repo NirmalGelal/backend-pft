@@ -2,6 +2,7 @@ package com.nirmal.personalfinancetracker.service.impl;
 
 import com.nirmal.personalfinancetracker.dto.request.BudgetLimitDto;
 import com.nirmal.personalfinancetracker.enums.ExpenseEnum;
+import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
 import com.nirmal.personalfinancetracker.model.BudgetLimit;
 import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.BudgetLimitRepository;
@@ -76,8 +77,11 @@ public class BudgetLimitServiceImpl implements BudgetLimitService {
         return "budget limit with id: "+budgetLimitId+ " not present.";
     }
 
-    public BigDecimal getLimit(ExpenseEnum category){
-        BudgetLimit budgetLimit = budgetLimitRepository.findByCategory(category);
-        return budgetLimit.getLimit();
+    public BigDecimal getLimit(ExpenseEnum category, RecurrenceEnum interval){
+        Optional<BudgetLimit> budgetLimit = budgetLimitRepository.findByCategoryAndInterval(category,interval);
+        if(budgetLimit.isPresent()){
+            return budgetLimit.get().getLimit();
+        }
+        return null;
     }
 }

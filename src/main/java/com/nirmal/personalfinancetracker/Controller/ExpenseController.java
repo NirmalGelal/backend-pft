@@ -7,6 +7,7 @@ import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
 import com.nirmal.personalfinancetracker.model.Expense;
 import com.nirmal.personalfinancetracker.service.impl.ExpenseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -50,9 +51,9 @@ public class ExpenseController {
     }
 
     @PostMapping("/expense")
-    public ResponseEntity<Response<Expense>> addExpense(@RequestBody AddExpenseDto addExpenseDto){
-        Response<Expense> response = new Response<>();
-        Expense expense1 = expenseServiceImpl.addExpense(addExpenseDto);
+    public ResponseEntity<Response<Pair<Expense,List<Boolean>>>> addExpense(@RequestBody AddExpenseDto addExpenseDto){
+        Response<Pair<Expense,List<Boolean>>> response = new Response<>();
+        Pair<Expense,List<Boolean>> expense1 = expenseServiceImpl.addExpense(addExpenseDto);
         response.setMessage("expense added");
         response.setData(expense1);
         response.setStatus(true);
@@ -71,12 +72,12 @@ public class ExpenseController {
     }
 
     @PutMapping("/expense/{id}")
-    public ResponseEntity<Response<Expense>> editExpense(@PathVariable int id,@RequestBody AddExpenseDto addExpenseDto){
-        Response<Expense> response = new Response<>();
-        Expense expense = expenseServiceImpl.updateExpense(id,addExpenseDto);
+    public ResponseEntity<Response<Pair<Expense,List<Boolean>>>> editExpense(@PathVariable int id,@RequestBody AddExpenseDto addExpenseDto){
+        Response<Pair<Expense, List<Boolean>>> response = new Response<>();
+        Pair<Expense, List<Boolean>> expenseListPair = expenseServiceImpl.updateExpense(id,addExpenseDto);
         response.setMessage("expense updated successfully");
         response.setStatus(true);
-        response.setData(expense);
+        response.setData(expenseListPair);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 

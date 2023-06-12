@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface ExpenseService {
 
-    public Expense addExpense(AddExpenseDto expense);
+    public Pair<Expense,List<Boolean>> addExpense(AddExpenseDto expense);
     public Expense viewExpense(int expenseId);
     public List<Expense> viewExpenseList();
-    public Expense updateExpense(int expenseId, AddExpenseDto addExpenseDto);
+    public Pair<Expense,List<Boolean>> updateExpense(int expenseId, AddExpenseDto addExpenseDto);
     public String deleteExpense(int expenseId);
 }

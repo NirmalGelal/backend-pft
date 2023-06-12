@@ -17,6 +17,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,9 +32,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     private BudgetLimitServiceImpl budgetLimitServiceImpl;
     @Autowired
     private GoalServiceImpl goalServiceImpl;
-
     @Override
-    public Expense addExpense(AddExpenseDto addExpenseDto) {
+    public Pair<Expense,List<Boolean>> addExpense(AddExpenseDto addExpenseDto) {
         Optional<User> user = userRepository.findById(addExpenseDto.getUserId());
         Expense expense = new Expense();
         expense.setUser(user.get());
@@ -41,30 +41,36 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setAmount(addExpenseDto.getAmount());
         expense.setDescription(addExpenseDto.getDescription());
 
-        Expense expense1 = expenseRepository.save(expense);
-//        if(expense.getAmount().compareTo(budgetLimitServiceImpl.getLimit(expense.getCategory(), expense.get)) > 0){
-//            Pair<Expense, Boolean> expenseBooleanPair = Pair.of(expense, false); // Pair.of(Expense, underLimit)
-//            return expenseBooleanPair;
-//        }
-//        Pair<Expense,Boolean> expenseBooleanPair = Pair.of(expense, true);
-        return expense1;
+        expenseRepository.save(expense);
+
+        List<Boolean> checkLimitInInterval = checkLimitInInterval(expense);
+        Pair<Expense,List<Boolean>> expenseBooleanListPair = Pair.of(expense, checkLimitInInterval);
+        return expenseBooleanListPair;
     }
 
+    public Pair<Expense, List<Boolean>> addExpense(int goalId, AddExpenseDto addExpenseDto) {
+        Optional<User> user = userRepository.findById(addExpenseDto.getUserId());
+        Expense expense = new Expense();
+        expense.setUser(user.get());
+        expense.setCategory(addExpenseDto.getCategory());
+        expense.setDescription(addExpenseDto.getDescription());
+        expense.setAmount(addExpenseDto.getAmount());
+
+        expenseRepository.save(expense);
+
+        goalServiceImpl.addAmountToGoal(expense.getAmount(), goalId);
+        List<Boolean> checkLimitInInterval = checkLimitInInterval(expense);
+        Pair<Expense,List<Boolean>> expenseBooleanListPair = Pair.of(expense, checkLimitInInterval);
+        return expenseBooleanListPair;
+
+    }
     @Override
     public Expense viewExpense(int expenseId) {
-        return expenseRepository.findById(expenseId).get();
-    }
-
-    public Pair<Expense, Boolean> addExpense(Expense expense, int goalId) {
-        expenseRepository.save(expense);
-        goalServiceImpl.addAmountToGoal(expense.getAmount(), goalId);
-        if(expense.getAmount().compareTo(budgetLimitServiceImpl.getLimit((expense.getCategory()))) > 0){
-            Pair<Expense, Boolean> expenseBooleanPair = Pair.of(expense, false); // Pair.of(Expense, underLimit)
-            return expenseBooleanPair;
+        Optional<Expense> expenseOptional = expenseRepository.findById(expenseId);
+        if(expenseOptional.isPresent()){
+            return expenseOptional.get();
         }
-
-        Pair<Expense, Boolean> expenseBooleanPair = Pair.of(expense, true); // Pair.of(Expense, underLimit)
-        return expenseBooleanPair;
+        return null;
     }
 
     @Override
@@ -73,14 +79,18 @@ public class ExpenseServiceImpl implements ExpenseService {
     }
 
     @Override
-    public Expense updateExpense(int expenseId, AddExpenseDto addExpenseDto) {
+    public Pair<Expense,List<Boolean>> updateExpense(int expenseId, AddExpenseDto addExpenseDto) {
         Expense expense = expenseRepository.findById(expenseId).get();
-        expense.setDescription(addExpenseDto.getDescription());
-        expense.setUser(userRepository.findById(addExpenseDto.getUserId()).get());
-        expense.setAmount(addExpenseDto.getAmount());
+        Optional<User> user = userRepository.findById(addExpenseDto.getUserId());
+        expense.setUser(user.get());
         expense.setCategory(addExpenseDto.getCategory());
+        expense.setDescription(addExpenseDto.getDescription());
+        expense.setAmount(addExpenseDto.getAmount());
         expenseRepository.save(expense);
-        return expense;
+
+        List<Boolean> checkLimitInInterval = checkLimitInInterval(expense);
+        Pair<Expense,List<Boolean>> expenseBooleanListPair = Pair.of(expense, checkLimitInInterval);
+        return expenseBooleanListPair;
     }
 
     @Override
@@ -124,5 +134,27 @@ public class ExpenseServiceImpl implements ExpenseService {
         }
 
     return sum;
+    }
+
+    public List<Boolean> checkLimitInInterval(Expense expense){
+        List<Boolean> checkLimitInInterval = new ArrayList<>();
+        for(RecurrenceEnum recurrenceEnum: RecurrenceEnum.values()){
+            // expenses of category in interval
+            BigDecimal totalExpenses = totalExpenseInInterval(expense.getCategory(),recurrenceEnum);
+            // check if already exceeded
+            BigDecimal limit = budgetLimitServiceImpl.getLimit(expense.getCategory(),recurrenceEnum);
+            if(limit!=null) {
+                if(totalExpenses.compareTo(limit) > 0){
+                    checkLimitInInterval.add(true);
+                    continue;
+                }
+                else {
+                    checkLimitInInterval.add(false);
+                    continue;
+                }
+            }
+            checkLimitInInterval.add(null);
+        }
+        return checkLimitInInterval;
     }
 }
