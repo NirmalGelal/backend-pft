@@ -33,7 +33,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Role updateRole(int roleId, Role role) {
         Role role1 = roleRepository.findById(roleId).get();
-        role1.setRoleAssigned(role.getRoleAssigned());
+        role1.setRole(role.getRole());
         roleRepository.save(role1);
         return role1;
     }

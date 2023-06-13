@@ -1,5 +1,7 @@
 package com.nirmal.personalfinancetracker.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.nirmal.personalfinancetracker.enums.RoleEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Entity
 @Table(name = "ftr_user")
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

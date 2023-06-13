@@ -1,5 +1,7 @@
 package com.nirmal.personalfinancetracker.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +17,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "ftr_goal")
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class Goal {
 
     @Id

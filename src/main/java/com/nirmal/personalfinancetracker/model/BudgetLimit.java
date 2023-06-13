@@ -1,5 +1,7 @@
 package com.nirmal.personalfinancetracker.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.nirmal.personalfinancetracker.enums.ExpenseEnum;
 import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
 import jakarta.persistence.*;
@@ -17,6 +19,7 @@ import java.math.BigDecimal;
 @Entity
 @Table(name = "ftr_budget_limit", uniqueConstraints = {@UniqueConstraint(name = "categoryAndInterval",
         columnNames = {"exp_category","bl_interval"})})
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class BudgetLimit {
 
     @Id

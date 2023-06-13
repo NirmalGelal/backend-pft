@@ -17,5 +17,4 @@ public class AddIncomeDto {
     private BigDecimal amount;
     private IncomeEnum category;
     private String description;
-
 }

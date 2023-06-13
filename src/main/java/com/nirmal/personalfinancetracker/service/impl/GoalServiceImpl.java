@@ -80,6 +80,11 @@ public class GoalServiceImpl implements GoalService {
         Goal goal = goalOptional.get();
         BigDecimal newAmount = goal.getAmountSaved().add(amount);
         goal.setAmountSaved(newAmount);
+        if(newAmount.compareTo(goal.getTotalAmount())>=0){
+            goal.setStatus("achieved");
+            goalRepository.save(goal);
+            return "amount added successfully, Goal is achieved";
+        }
         goalRepository.save(goal);
         return "amount added successfully, amount left: "+(goal.getTotalAmount().subtract(goal.getAmountSaved()));
     }

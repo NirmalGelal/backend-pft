@@ -1,5 +1,7 @@
 package com.nirmal.personalfinancetracker.model;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "ftr_recurring_bills")
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class RecurringBills {
     @Id
     @Column(name = "rb_id")

@@ -1,6 +1,8 @@
 package com.nirmal.personalfinancetracker.Controller;
 
 import com.nirmal.personalfinancetracker.dto.request.AddExpenseDto;
+import com.nirmal.personalfinancetracker.dto.response.ExpenseResponseDto;
+import com.nirmal.personalfinancetracker.dto.response.GoalExpenseResponseDto;
 import com.nirmal.personalfinancetracker.dto.response.Response;
 import com.nirmal.personalfinancetracker.enums.ExpenseEnum;
 import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
@@ -51,13 +53,24 @@ public class ExpenseController {
     }
 
     @PostMapping("/expense")
-    public ResponseEntity<Response<Pair<Expense,List<Boolean>>>> addExpense(@RequestBody AddExpenseDto addExpenseDto){
-        Response<Pair<Expense,List<Boolean>>> response = new Response<>();
-        Pair<Expense,List<Boolean>> expense1 = expenseServiceImpl.addExpense(addExpenseDto);
+    public ResponseEntity<Response<ExpenseResponseDto>> addExpense(@RequestBody AddExpenseDto addExpenseDto){
+        Response<ExpenseResponseDto> response = new Response<>();
+        ExpenseResponseDto expenseResponseDto = expenseServiceImpl.addExpense(addExpenseDto);
         response.setMessage("expense added");
-        response.setData(expense1);
+        response.setData(expenseResponseDto);
         response.setStatus(true);
         return new ResponseEntity<>(response,HttpStatus.CREATED);
+    }
+
+    @PostMapping("/goal-expense/{goalId}")
+    public ResponseEntity<Response<GoalExpenseResponseDto>> addGoalExpense(@PathVariable int goalId,
+                                                                           @RequestBody AddExpenseDto addExpenseDto){
+        Response<GoalExpenseResponseDto> response = new Response<>();
+        GoalExpenseResponseDto goalExpenseResponseDto = expenseServiceImpl.addExpense(goalId,addExpenseDto);
+        response.setMessage("goal expense added successfully");
+        response.setStatus(true);
+        response.setData(goalExpenseResponseDto);
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
     @GetMapping("/total-expense")
@@ -72,12 +85,12 @@ public class ExpenseController {
     }
 
     @PutMapping("/expense/{id}")
-    public ResponseEntity<Response<Pair<Expense,List<Boolean>>>> editExpense(@PathVariable int id,@RequestBody AddExpenseDto addExpenseDto){
-        Response<Pair<Expense, List<Boolean>>> response = new Response<>();
-        Pair<Expense, List<Boolean>> expenseListPair = expenseServiceImpl.updateExpense(id,addExpenseDto);
+    public ResponseEntity<Response<ExpenseResponseDto>> editExpense(@PathVariable int id,@RequestBody AddExpenseDto addExpenseDto){
+        Response<ExpenseResponseDto> response = new Response<>();
+        ExpenseResponseDto expenseResponseDto = expenseServiceImpl.updateExpense(id,addExpenseDto);
         response.setMessage("expense updated successfully");
         response.setStatus(true);
-        response.setData(expenseListPair);
+        response.setData(expenseResponseDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -93,6 +106,19 @@ public class ExpenseController {
         response.setStatus(false);
         response.setData(data);
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+    }
 
+    @DeleteMapping("/goal-expense/{expenseId}")
+    public ResponseEntity<Response<String>> deleteGoalExpense(@PathVariable int expenseId, @RequestParam int goalId){
+        Response<String> response = new Response<>();
+        String data = expenseServiceImpl.deleteGoalExpense(goalId,expenseId);
+        if(data.equals("success")){
+            response.setStatus(true);
+            response.setData(data);
+            return new ResponseEntity<>(response,HttpStatus.OK);
+        }
+        response.setStatus(false);
+        response.setData(data);
+        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 }
