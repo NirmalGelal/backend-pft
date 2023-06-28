@@ -2,9 +2,13 @@ package com.nirmal.personalfinancetracker.service.impl;
 
 
 import com.nirmal.personalfinancetracker.dto.request.AddGoalDto;
+import com.nirmal.personalfinancetracker.dto.request.AddIncomeDto;
+import com.nirmal.personalfinancetracker.enums.IncomeEnum;
 import com.nirmal.personalfinancetracker.model.Goal;
+import com.nirmal.personalfinancetracker.model.Income;
 import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.GoalRepository;
+import com.nirmal.personalfinancetracker.repository.IncomeRepository;
 import com.nirmal.personalfinancetracker.repository.UserRepository;
 import com.nirmal.personalfinancetracker.service.GoalService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,8 @@ public class GoalServiceImpl implements GoalService {
     private GoalRepository goalRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private IncomeServiceImpl incomeService;
 
     @Override
     public Goal addGoal(AddGoalDto addGoalDto) {
@@ -57,6 +63,13 @@ public class GoalServiceImpl implements GoalService {
             goal.setUser(userRepository.findById(addGoalDto.getUserId()).get());
             goal.setName(addGoalDto.getName());
             goal.setTotalAmount(addGoalDto.getTotalAmount());
+            goal.setAmountSaved(goalOptional.get().getAmountSaved());
+            if(addGoalDto.getTotalAmount().compareTo(goalOptional.get().getAmountSaved())>0){
+                goal.setStatus("progress");
+            }
+            else {
+                goal.setStatus("achieved");
+            }
             goalRepository.save(goal);
 
             return goal;
@@ -68,8 +81,22 @@ public class GoalServiceImpl implements GoalService {
     public String deleteGoal(int goalId) {
         Optional<Goal> goal = goalRepository.findById(goalId);
         if(goal.isPresent()){
+            if(goal.get().getAmountSaved().compareTo(BigDecimal.ZERO) == 0){
+                goalRepository.deleteById(goalId);
+                return "success";
+            }
+            BigDecimal amount = goal.get().getAmountSaved();
+
+            AddIncomeDto addIncomeDto = new AddIncomeDto();
+            addIncomeDto.setAmount(amount);
+            addIncomeDto.setDescription("income from the saved goal: "+goal.get().getName());
+            addIncomeDto.setCategory(IncomeEnum.OTHER);
+            addIncomeDto.setUserId(goal.get().getUser().getId());
+
+            incomeService.addIncome(addIncomeDto);
             goalRepository.deleteById(goalId);
             return "success";
+
         }
         return "goal with id: "+goalId+ " not present.";
     }

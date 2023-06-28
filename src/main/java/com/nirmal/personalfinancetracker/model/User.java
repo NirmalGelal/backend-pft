@@ -40,4 +40,5 @@ public class User {
 
     @Column(name = "usr_address")
     private String address;
+
 }
