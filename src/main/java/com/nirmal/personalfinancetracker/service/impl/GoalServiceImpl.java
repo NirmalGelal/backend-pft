@@ -3,6 +3,7 @@ package com.nirmal.personalfinancetracker.service.impl;
 
 import com.nirmal.personalfinancetracker.dto.request.AddGoalDto;
 import com.nirmal.personalfinancetracker.dto.request.AddIncomeDto;
+import com.nirmal.personalfinancetracker.dto.response.GoalDto;
 import com.nirmal.personalfinancetracker.enums.IncomeEnum;
 import com.nirmal.personalfinancetracker.model.Goal;
 import com.nirmal.personalfinancetracker.model.Income;
@@ -10,11 +11,13 @@ import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.GoalRepository;
 import com.nirmal.personalfinancetracker.repository.IncomeRepository;
 import com.nirmal.personalfinancetracker.repository.UserRepository;
+import com.nirmal.personalfinancetracker.service.DtoMapper;
 import com.nirmal.personalfinancetracker.service.GoalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,9 +30,11 @@ public class GoalServiceImpl implements GoalService {
     private UserRepository userRepository;
     @Autowired
     private IncomeServiceImpl incomeService;
+    @Autowired
+    private DtoMapper dtoMapper;
 
     @Override
-    public Goal addGoal(AddGoalDto addGoalDto) {
+    public GoalDto addGoal(AddGoalDto addGoalDto) {
         Goal goal = new Goal();
         User user = userRepository.findById(addGoalDto.getUserId()).get();
         goal.setUser(user);
@@ -37,25 +42,28 @@ public class GoalServiceImpl implements GoalService {
         goal.setStatus("progress");
         goal.setTotalAmount(addGoalDto.getTotalAmount());
         goalRepository.save(goal);
-        return goal;
+        return dtoMapper.toGoalDto(goal);
     }
 
     @Override
-    public List<Goal> viewGoalList() {
-        return goalRepository.findAll();
-    }
-
-    @Override
-    public Goal viewGoalById(int goalId) {
-        Optional<Goal> goal = goalRepository.findById(goalId);
-        if(goal.isPresent()){
-            return goal.get();
+    public List<GoalDto> viewGoalList() {
+        List<Goal> goals = goalRepository.findAll();
+        List<GoalDto> goalDtos = new ArrayList<>();
+        for (Goal goal:
+             goals) {
+            goalDtos.add(dtoMapper.toGoalDto(goal));
         }
-        return null;
+        return goalDtos;
     }
 
     @Override
-    public Goal updateGoal(int goalId, AddGoalDto addGoalDto) {
+    public GoalDto viewGoalById(int goalId) {
+        Optional<Goal> goal = goalRepository.findById(goalId);
+        return goal.map(value -> dtoMapper.toGoalDto(value)).orElse(null);
+    }
+
+    @Override
+    public GoalDto updateGoal(int goalId, AddGoalDto addGoalDto) {
         Optional<Goal> goalOptional = goalRepository.findById(goalId);
         if(goalOptional.isPresent()){
             Goal goal = new Goal();
@@ -72,7 +80,7 @@ public class GoalServiceImpl implements GoalService {
             }
             goalRepository.save(goal);
 
-            return goal;
+            return dtoMapper.toGoalDto(goal);
         }
         return null;
     }

@@ -6,7 +6,6 @@ import com.nirmal.personalfinancetracker.dto.response.GoalExpenseResponseDto;
 import com.nirmal.personalfinancetracker.dto.response.Response;
 import com.nirmal.personalfinancetracker.enums.ExpenseEnum;
 import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
-import com.nirmal.personalfinancetracker.model.Expense;
 import com.nirmal.personalfinancetracker.service.impl.ExpenseServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,28 +24,22 @@ public class ExpenseController {
     private ExpenseServiceImpl expenseServiceImpl;
 
     @GetMapping("/expenses")
-    public ResponseEntity<Response<List<Expense>>> listAllExpenses(){
-        Response<List<Expense>> response = new Response<>();
-        List<Expense> expenses = expenseServiceImpl.viewExpenseList();
-        if(!expenses.isEmpty()){
-            response.setData(expenses);
-            response.setMessage("list retrieved successfully");
-            response.setStatus(true);
+    public ResponseEntity<Response<List<ExpenseResponseDto>>> listAllExpenses(){
+        Response<List<ExpenseResponseDto>> response = new Response<>();
+        List<ExpenseResponseDto> expenseResponseDtos = expenseServiceImpl.viewExpenseList();
+        if(!expenseResponseDtos.isEmpty()){
+            response.successResponse(expenseResponseDtos,"list retrieved successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        response.setStatus(false);
-        response.setData(null);
-        response.setMessage("database is empty");
+        response.failureResponse("database is empty");
         return new ResponseEntity<>(response, HttpStatusCode.valueOf(204));
     }
 
     @GetMapping("/expenses/{id}")
-    public ResponseEntity<Response<Expense>> viewExpense (@PathVariable int id){
-        Response<Expense> response = new Response<>();
-        Expense expense = expenseServiceImpl.viewExpense(id);
-        response.setData(expense);
-        response.setMessage("expense retrieved successfully");
-        response.setStatus(true);
+    public ResponseEntity<Response<ExpenseResponseDto>> viewExpense (@PathVariable int id){
+        Response<ExpenseResponseDto> response = new Response<>();
+        ExpenseResponseDto expenseResponseDto = expenseServiceImpl.viewExpense(id);
+        response.successResponse(expenseResponseDto,"expense retrieved successfully");
         return new ResponseEntity<>(response,HttpStatus.OK);
 
     }
@@ -55,9 +48,7 @@ public class ExpenseController {
     public ResponseEntity<Response<ExpenseResponseDto>> addExpense(@RequestBody AddExpenseDto addExpenseDto){
         Response<ExpenseResponseDto> response = new Response<>();
         ExpenseResponseDto expenseResponseDto = expenseServiceImpl.addExpense(addExpenseDto);
-        response.setMessage("expense added");
-        response.setData(expenseResponseDto);
-        response.setStatus(true);
+        response.successResponse(expenseResponseDto,"expense added");
         return new ResponseEntity<>(response,HttpStatus.CREATED);
     }
 
@@ -66,9 +57,7 @@ public class ExpenseController {
                                                                            @RequestBody AddExpenseDto addExpenseDto){
         Response<GoalExpenseResponseDto> response = new Response<>();
         GoalExpenseResponseDto goalExpenseResponseDto = expenseServiceImpl.addExpense(goalId,addExpenseDto);
-        response.setMessage("goal expense added successfully");
-        response.setStatus(true);
-        response.setData(goalExpenseResponseDto);
+        response.successResponse(goalExpenseResponseDto,"goal expense added successfully");
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
@@ -77,9 +66,7 @@ public class ExpenseController {
                                                                                 @RequestParam RecurrenceEnum interval){
         Response<BigDecimal> response = new Response<>();
         BigDecimal totalAmount = expenseServiceImpl.totalExpenseInInterval(category, interval);
-        response.setData(totalAmount);
-        response.setStatus(true);
-        response.setMessage("total expense for "+ interval + " successfully calculated");
+        response.successResponse(totalAmount,"total expense for "+ interval + " successfully calculated");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -87,9 +74,7 @@ public class ExpenseController {
     public ResponseEntity<Response<ExpenseResponseDto>> editExpense(@PathVariable int id,@RequestBody AddExpenseDto addExpenseDto){
         Response<ExpenseResponseDto> response = new Response<>();
         ExpenseResponseDto expenseResponseDto = expenseServiceImpl.updateExpense(id,addExpenseDto);
-        response.setMessage("expense updated successfully");
-        response.setStatus(true);
-        response.setData(expenseResponseDto);
+        response.successResponse(expenseResponseDto,"expense updated successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -98,12 +83,10 @@ public class ExpenseController {
         Response<String> response = new Response<>();
         String data = expenseServiceImpl.deleteExpense(id);
         if(data.equals("success")){
-            response.setStatus(true);
-            response.setData(data);
+            response.successResponse(null,data);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }
-        response.setStatus(false);
-        response.setData(data);
+        response.failureResponse(data);
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 
@@ -112,12 +95,10 @@ public class ExpenseController {
         Response<String> response = new Response<>();
         String data = expenseServiceImpl.deleteGoalExpense(goalId,expenseId);
         if(data.equals("success")){
-            response.setStatus(true);
-            response.setData(data);
+            response.successResponse(null,data);
             return new ResponseEntity<>(response,HttpStatus.OK);
         }
-        response.setStatus(false);
-        response.setData(data);
+        response.failureResponse(data);
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 }

@@ -39,6 +39,8 @@ public class ExpenseServiceImpl implements ExpenseService {
     private BudgetLimitServiceImpl budgetLimitServiceImpl;
     @Autowired
     private GoalServiceImpl goalServiceImpl;
+    @Autowired
+    private DtoMapperImpl dtoMapper;
     @Override
     public ExpenseResponseDto addExpense(AddExpenseDto addExpenseDto) {
         Optional<User> user = userRepository.findById(addExpenseDto.getUserId());
@@ -49,10 +51,7 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setDescription(addExpenseDto.getDescription());
 
         expenseRepository.save(expense);
-        ExpenseResponseDto expenseResponseDto = new ExpenseResponseDto();
-        expenseResponseDto.setExpense(expense);
-        expenseResponseDto.setOverLimit(createHashMap(expense));
-        return expenseResponseDto;
+        return dtoMapper.toExpenseDto(expense);
     }
 
     public GoalExpenseResponseDto addExpense(int goalId, AddExpenseDto addExpenseDto) {
@@ -65,27 +64,26 @@ public class ExpenseServiceImpl implements ExpenseService {
 
         expenseRepository.save(expense);
         String data = goalServiceImpl.addAmountToGoal(expense.getAmount(), goalId);
-        GoalExpenseResponseDto goalExpenseResponseDto = new GoalExpenseResponseDto();
+        Optional<Goal> goalOptional = goalRepository.findById(goalId);
 
-        goalExpenseResponseDto.setExpense(expense);
-        goalExpenseResponseDto.setOverLimit(createHashMap(expense));
-        goalExpenseResponseDto.setGoalId(goalId);
-        goalExpenseResponseDto.setData(data);
-        return goalExpenseResponseDto;
+        return dtoMapper.toGoalExpenseDto(expense,goalOptional.get(),data);
 
     }
     @Override
-    public Expense viewExpense(int expenseId) {
+    public ExpenseResponseDto viewExpense(int expenseId) {
         Optional<Expense> expenseOptional = expenseRepository.findById(expenseId);
-        if(expenseOptional.isPresent()){
-            return expenseOptional.get();
-        }
-        return null;
+        return expenseOptional.map(expense -> dtoMapper.toExpenseDto(expense)).orElse(null);
     }
 
     @Override
-    public List<Expense> viewExpenseList() {
-        return expenseRepository.findAll();
+    public List<ExpenseResponseDto> viewExpenseList() {
+        List<Expense> expenses = expenseRepository.findAll();
+        List<ExpenseResponseDto> expenseResponseDtos = new ArrayList<>();
+        for (Expense expense:
+             expenses) {
+            expenseResponseDtos.add(dtoMapper.toExpenseDto(expense));
+        }
+        return expenseResponseDtos;
     }
 
     @Override
@@ -99,18 +97,16 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setAmount(addExpenseDto.getAmount());
         expenseRepository.save(expense);
 
-        ExpenseResponseDto expenseResponseDto = new ExpenseResponseDto();
-        expenseResponseDto.setExpense(expense);
+        ExpenseResponseDto expenseResponseDto = dtoMapper.toExpenseDto(expense);
         expenseResponseDto.setOverLimit(createHashMap(expense));
         return expenseResponseDto;
     }
 
     @Override
-    public ExpenseResponseDto updateGoalExpense(int goalId, int expenseId, AddExpenseDto addExpenseDto) {
+    public GoalExpenseResponseDto updateGoalExpense(int goalId, int expenseId, AddExpenseDto addExpenseDto) {
         Optional<Expense> expenseOptional = expenseRepository.findById(expenseId);
         Optional<User> userOptional = userRepository.findById(addExpenseDto.getUserId());
         Optional<Goal> goalOptional = goalRepository.findById(goalId);
-        ExpenseResponseDto expenseResponseDto = new ExpenseResponseDto();
         if(expenseOptional.isPresent() && goalOptional.isPresent() && userOptional.isPresent()){
 
             BigDecimal oldAmount = expenseOptional.get().getAmount();
@@ -118,15 +114,16 @@ public class ExpenseServiceImpl implements ExpenseService {
             goalOptional.get().setAmountSaved(goalOptional.get().getAmountSaved().subtract(oldAmount).add(newAmount));
             goalRepository.save(goalOptional.get());
 
-            expenseOptional.get().setUser(userOptional.get());
-            expenseOptional.get().setCategory(addExpenseDto.getCategory());
-            expenseOptional.get().setDescription(addExpenseDto.getDescription());
-            expenseOptional.get().setAmount(addExpenseDto.getAmount());
+            Expense expense = expenseOptional.get();
+            expense.setUser(userOptional.get());
+            expense.setCategory(addExpenseDto.getCategory());
+            expense.setDescription(addExpenseDto.getDescription());
+            expense.setAmount(addExpenseDto.getAmount());
             expenseRepository.save(expenseOptional.get());
 
-            expenseResponseDto.setExpense(expenseOptional.get());
-            expenseResponseDto.setOverLimit(createHashMap(expenseOptional.get()));
-            return expenseResponseDto;
+            GoalExpenseResponseDto goalExpenseResponseDto = dtoMapper.toGoalExpenseDto(expense,goalOptional.get(),"");
+            goalExpenseResponseDto.setOverLimit(createHashMap(expenseOptional.get()));
+            return goalExpenseResponseDto;
         }
         return null;
     }

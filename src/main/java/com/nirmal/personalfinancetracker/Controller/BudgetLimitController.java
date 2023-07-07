@@ -1,6 +1,7 @@
 package com.nirmal.personalfinancetracker.Controller;
 
-import com.nirmal.personalfinancetracker.dto.request.BudgetLimitDto;
+import com.nirmal.personalfinancetracker.dto.request.BudgetLimitRequestDto;
+import com.nirmal.personalfinancetracker.dto.response.BudgetLimitResponseDto;
 import com.nirmal.personalfinancetracker.dto.response.Response;
 import com.nirmal.personalfinancetracker.model.BudgetLimit;
 import com.nirmal.personalfinancetracker.service.impl.BudgetLimitServiceImpl;
@@ -17,57 +18,46 @@ public class BudgetLimitController {
     @Autowired
     private BudgetLimitServiceImpl budgetLimitServiceImpl;
     @GetMapping("/budget-limits")
-    public ResponseEntity<Response<List<BudgetLimit>>> viewBudgetLimitList(){
-        Response<List<BudgetLimit>> response = new Response<>();
-        List<BudgetLimit> budgetLimitList = budgetLimitServiceImpl.viewBudgetLimitList();
-        if(budgetLimitList!=null){
-            response.setData(budgetLimitList);
-            response.setMessage("list retrieved successfully");
-            response.setStatus(true);
+    public ResponseEntity<Response<List<BudgetLimitResponseDto>>> viewBudgetLimitList(){
+        Response<List<BudgetLimitResponseDto>> response = new Response<>();
+        List<BudgetLimitResponseDto> budgetLimitResponseDtos = budgetLimitServiceImpl.viewBudgetLimitList();
+        if(budgetLimitResponseDtos!=null){
+            response.successResponse(budgetLimitResponseDtos,"list retrieved successfully");
             return  new ResponseEntity<>(response, HttpStatus.OK);
         }
-        response.setStatus(false);
-        response.setMessage("budget limit database is empty");
+        response.failureResponse("budget limit database is empty");
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/budget-limits/{id}")
-    public ResponseEntity<Response<BudgetLimit>> viewBudgetLimitById(@PathVariable int id){
-        Response<BudgetLimit> response = new Response<>();
-        BudgetLimit budgetLimit = budgetLimitServiceImpl.viewBudgetLimitById(id);
-        if(budgetLimit!=null){
-            response.setData(budgetLimit);
-            response.setStatus(true);
-            response.setMessage("Budget Limit retrieved successfully");
+    public ResponseEntity<Response<BudgetLimitResponseDto>> viewBudgetLimitById(@PathVariable int id){
+        Response<BudgetLimitResponseDto> response = new Response<>();
+        BudgetLimitResponseDto budgetLimitResponseDto = budgetLimitServiceImpl.viewBudgetLimitById(id);
+        if(budgetLimitResponseDto!=null){
+            response.successResponse(budgetLimitResponseDto,"Budget Limit retrieved successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        response.setMessage("Invalid id");
-        response.setStatus(false);
+        response.failureResponse("Invalid id");
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/budget-limits")
-    public ResponseEntity<Response<BudgetLimit>> addBudgetLimit(@RequestBody BudgetLimitDto budgetLimitDto){
-        Response<BudgetLimit> response = new Response<>();
-        BudgetLimit budgetLimit = budgetLimitServiceImpl.addBudgetLimit(budgetLimitDto);
-        response.setStatus(true);
-        response.setData(budgetLimit);
-        response.setMessage("budget limit added successfully");
+    public ResponseEntity<Response<BudgetLimitResponseDto>> addBudgetLimit(@RequestBody BudgetLimitRequestDto budgetLimitRequestDto){
+        Response<BudgetLimitResponseDto> response = new Response<>();
+        BudgetLimitResponseDto budgetLimitResponseDto = budgetLimitServiceImpl.addBudgetLimit(budgetLimitRequestDto);
+        response.successResponse(budgetLimitResponseDto,"budget limit added successfully");
         return new ResponseEntity<>(response,HttpStatus.CREATED);
     }
 
     @PutMapping("/budget-limits/{id}")
-    public ResponseEntity<Response<BudgetLimit>> updateBudgetLimit(@PathVariable int id, @RequestBody BudgetLimitDto budgetLimitDto){
-        Response<BudgetLimit> response = new Response<>();
-        BudgetLimit budgetLimit = budgetLimitServiceImpl.updateBudgetLimit(id, budgetLimitDto);
-        if(budgetLimit!=null){
-            response.setMessage("budget limit updated successfully");
-            response.setStatus(true);
-            response.setData(budgetLimit);
+    public ResponseEntity<Response<BudgetLimitResponseDto>> updateBudgetLimit(@PathVariable int id, @RequestBody BudgetLimitRequestDto budgetLimitRequestDto){
+        Response<BudgetLimitResponseDto> response = new Response<>();
+        BudgetLimitResponseDto budgetLimitResponseDto = budgetLimitServiceImpl.updateBudgetLimit(id, budgetLimitRequestDto);
+        if(budgetLimitResponseDto!=null){
+            response.successResponse(budgetLimitResponseDto,"budget limit updated successfully");
             return new ResponseEntity<>(response,HttpStatus.OK);
         }
-        response.setStatus(false);
-        response.setMessage("Invalid id");
+        response.failureResponse("Invalid id");
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 
@@ -75,14 +65,11 @@ public class BudgetLimitController {
     public ResponseEntity<Response<String>> deleteBudgetLimit(@PathVariable int id){
         Response<String> response = new Response<>();
         String data = budgetLimitServiceImpl.deleteBudgetLimit(id);
-        if(data=="success"){
-            response.setMessage("budget limit deleted successfully");
-            response.setStatus(true);
-            response.setData(data);
+        if(data.equals("success")){
+            response.successResponse(data,"budget limit deleted successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        response.setMessage("Invalid id");
-        response.setStatus(false);
+        response.failureResponse("Invalid id");
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 }

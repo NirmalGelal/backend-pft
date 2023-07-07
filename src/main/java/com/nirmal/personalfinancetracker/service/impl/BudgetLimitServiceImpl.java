@@ -1,6 +1,7 @@
 package com.nirmal.personalfinancetracker.service.impl;
 
-import com.nirmal.personalfinancetracker.dto.request.BudgetLimitDto;
+import com.nirmal.personalfinancetracker.dto.request.BudgetLimitRequestDto;
+import com.nirmal.personalfinancetracker.dto.response.BudgetLimitResponseDto;
 import com.nirmal.personalfinancetracker.enums.ExpenseEnum;
 import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
 import com.nirmal.personalfinancetracker.model.BudgetLimit;
@@ -8,10 +9,12 @@ import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.BudgetLimitRepository;
 import com.nirmal.personalfinancetracker.repository.UserRepository;
 import com.nirmal.personalfinancetracker.service.BudgetLimitService;
+import com.nirmal.personalfinancetracker.service.DtoMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,48 +24,52 @@ public class BudgetLimitServiceImpl implements BudgetLimitService {
     private BudgetLimitRepository budgetLimitRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private DtoMapper dtoMapper;
     @Override
-    public BudgetLimit addBudgetLimit(BudgetLimitDto budgetLimitDto) {
-        User user = userRepository.findById(budgetLimitDto.getUserId()).get();
+    public BudgetLimitResponseDto addBudgetLimit(BudgetLimitRequestDto budgetLimitRequestDto) {
+        User user = userRepository.findById(budgetLimitRequestDto.getUserId()).get();
         BudgetLimit budgetLimit = new BudgetLimit();
-        budgetLimit.setLimit(budgetLimitDto.getLimit());
+        budgetLimit.setLimit(budgetLimitRequestDto.getLimit());
         budgetLimit.setUser(user);
-        budgetLimit.setCategory(budgetLimitDto.getCategory());
-        budgetLimit.setInterval(budgetLimitDto.getInterval());
+        budgetLimit.setCategory(budgetLimitRequestDto.getCategory());
+        budgetLimit.setInterval(budgetLimitRequestDto.getInterval());
         budgetLimitRepository.save(budgetLimit);
-        return budgetLimit;
+        return dtoMapper.toBudgetLimitDto(budgetLimit);
     }
 
     @Override
-    public List<BudgetLimit> viewBudgetLimitList() {
+    public List<BudgetLimitResponseDto> viewBudgetLimitList() {
         List<BudgetLimit> budgetLimitList = budgetLimitRepository.findAll();
+        List<BudgetLimitResponseDto> budgetLimitResponseDtos = new ArrayList<>();
         if(!budgetLimitList.isEmpty()){
-            return budgetLimitRepository.findAll();
+            for (BudgetLimit budgetLimit:
+                 budgetLimitList) {
+                budgetLimitResponseDtos.add(dtoMapper.toBudgetLimitDto(budgetLimit));
+            }
+            return budgetLimitResponseDtos;
         }
         return null;
     }
 
     @Override
-    public BudgetLimit viewBudgetLimitById(int budgetLimitId) {
+    public BudgetLimitResponseDto viewBudgetLimitById(int budgetLimitId) {
         Optional<BudgetLimit> budgetLimitOptional = budgetLimitRepository.findById(budgetLimitId);
-        if(budgetLimitOptional.isPresent()){
-            return budgetLimitOptional.get();
-        }
-        return null;
+        return budgetLimitOptional.map(budgetLimit -> dtoMapper.toBudgetLimitDto(budgetLimit)).orElse(null);
     }
 
     @Override
-    public BudgetLimit updateBudgetLimit(int budgetLimitId,BudgetLimitDto budgetLimitDto) {
+    public BudgetLimitResponseDto updateBudgetLimit(int budgetLimitId, BudgetLimitRequestDto budgetLimitRequestDto) {
         Optional<BudgetLimit> budgetLimitOptional =budgetLimitRepository.findById(budgetLimitId);
         if(budgetLimitOptional.isPresent()){
             BudgetLimit budgetLimit = budgetLimitOptional.get();
             budgetLimit.setId((budgetLimitId));
-            budgetLimit.setUser(userRepository.findById(budgetLimitDto.getUserId()).get());
-            budgetLimit.setCategory(budgetLimitDto.getCategory());
-            budgetLimit.setLimit(budgetLimitDto.getLimit());
-            budgetLimit.setInterval(budgetLimitDto.getInterval());
+            budgetLimit.setUser(userRepository.findById(budgetLimitRequestDto.getUserId()).get());
+            budgetLimit.setCategory(budgetLimitRequestDto.getCategory());
+            budgetLimit.setLimit(budgetLimitRequestDto.getLimit());
+            budgetLimit.setInterval(budgetLimitRequestDto.getInterval());
             budgetLimitRepository.save(budgetLimit);
-            return budgetLimit;
+            return dtoMapper.toBudgetLimitDto(budgetLimit);
         }
         return null;
     }
@@ -79,9 +86,6 @@ public class BudgetLimitServiceImpl implements BudgetLimitService {
 
     public BigDecimal getLimit(ExpenseEnum category, RecurrenceEnum interval){
         Optional<BudgetLimit> budgetLimit = budgetLimitRepository.findByCategoryAndInterval(category,interval);
-        if(budgetLimit.isPresent()){
-            return budgetLimit.get().getLimit();
-        }
-        return null;
+        return budgetLimit.map(BudgetLimit::getLimit).orElse(null);
     }
 }
