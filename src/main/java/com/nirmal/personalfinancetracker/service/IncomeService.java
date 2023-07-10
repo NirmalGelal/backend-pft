@@ -9,8 +9,8 @@ import java.util.List;
 public interface IncomeService {
 
     public IncomeDto addIncome(AddIncomeDto addIncomeDto);
-    public List<IncomeDto> viewIncomeList();
+    public List<IncomeDto> viewIncomeList(int id);
     public IncomeDto viewIncomeById(int id);
-    public IncomeDto updateIncome(int id, AddIncomeDto addIncomeDto);
+    public IncomeDto updateIncome(int incomeId,AddIncomeDto addIncomeDto);
     public String deleteIncome(int incomeId);
 }

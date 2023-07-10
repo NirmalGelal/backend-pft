@@ -40,18 +40,22 @@ public class AuthApi {
         AuthenticationResponse authenticationResponse = AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .refreshToken(refreshToken)
-                .username(data.getEmail())
+//                .username(data.getEmail())
                 .build();
-        response.successResponse(authenticationResponse,"tokens generated successfully");
+        response.successResponse(authenticationResponse, "tokens generated successfully");
         return response;
     }
 
-    @PostMapping("/user")
+    @PostMapping("/signup")
     public Response<UserResponseDto> addUser(@RequestBody UserRequestDto userRequestDto) {
         Response<UserResponseDto> response = new Response<>();
         User user = dtoMapper.toUserEntity(userRequestDto);
         UserResponseDto userResponseDto = userService.registerUser(user);
-        response.successResponse(userResponseDto,"user registered successfully");
+        if (userResponseDto != null) {
+            response.successResponse(userResponseDto, "user registered successfully");
+            return response;
+        }
+        response.failureResponse("username already exists");
         return response;
     }
 
@@ -63,7 +67,7 @@ public class AuthApi {
     ) throws IOException {
         Response<AuthenticationResponse> response = new Response<>();
         AuthenticationResponse authenticationResponse = jwtService.refreshToken(req, res);
-        response.successResponse(authenticationResponse,"access token revived successfully");
+        response.successResponse(authenticationResponse, "access token revived successfully");
         return response;
     }
 }

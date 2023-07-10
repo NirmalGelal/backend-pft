@@ -69,7 +69,7 @@ public class JwtService {
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setIssuedAt(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInkey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -110,7 +110,7 @@ public class JwtService {
                 return AuthenticationResponse.builder()
                         .accessToken(authToken)
                         .refreshToken(refreshToken)
-                        .username(userDetails.getUsername())
+//                        .username(userDetails.getUsername())
                         .build();
             }
         }

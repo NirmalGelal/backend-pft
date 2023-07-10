@@ -6,6 +6,7 @@ import com.nirmal.personalfinancetracker.service.impl.RoleServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,14 +25,14 @@ public class RoleController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/roles")
+    @GetMapping("/role")
     public ResponseEntity<Response<List<Role>>> viewRoleList(){
         Response<List<Role>> response = new Response<>();
         List<Role> roles = roleServiceImpl.viewRoleList();
         response.successResponse(roles,"list successfully retrieved");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-    @GetMapping("/roles/{id}")
+    @GetMapping("/role/{id}")
     public ResponseEntity<Response<Role>> viewRoleById(@PathVariable int id){
         Response<Role> response = new Response<>();
         Role role = roleServiceImpl.viewRoleById(id);

@@ -9,6 +9,7 @@ import com.nirmal.personalfinancetracker.repository.UserRepository;
 import com.nirmal.personalfinancetracker.service.DtoMapper;
 import com.nirmal.personalfinancetracker.service.IncomeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,7 +27,8 @@ public class IncomeServiceImpl implements IncomeService {
 
     @Override
     public IncomeDto addIncome(AddIncomeDto addIncomeDto) {
-        User user = userRepository.findById(addIncomeDto.getUserId()).get();
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        addIncomeDto.setUserId(user.getId());
         Income income = new Income();
         income.setUser(user);
         income.setCategory(addIncomeDto.getCategory());
@@ -37,8 +39,8 @@ public class IncomeServiceImpl implements IncomeService {
     }
 
     @Override
-    public List<IncomeDto> viewIncomeList() {
-        List<Income> incomes = incomeRepository.findAll();
+    public List<IncomeDto> viewIncomeList(int userId) {
+        List<Income> incomes = incomeRepository.findAllByUserId(userId);
         List<IncomeDto> incomeDtos = new ArrayList<>();
         for (Income income:
              incomes) {
@@ -63,7 +65,8 @@ public class IncomeServiceImpl implements IncomeService {
         Optional<Income> incomeOptional = incomeRepository.findById(incomeId);
         if(incomeOptional.isPresent()){
             Income income = incomeOptional.get();
-            User user = userRepository.findById(addIncomeDto.getUserId()).get();
+            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            addIncomeDto.setUserId(user.getId());
             income.setId(incomeId);
             income.setUser(user);
             income.setCategory(addIncomeDto.getCategory());

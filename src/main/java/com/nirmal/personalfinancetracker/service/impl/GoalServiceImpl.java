@@ -99,7 +99,6 @@ public class GoalServiceImpl implements GoalService {
             addIncomeDto.setAmount(amount);
             addIncomeDto.setDescription("income from the saved goal: "+goal.get().getName());
             addIncomeDto.setCategory(IncomeEnum.OTHER);
-            addIncomeDto.setUserId(goal.get().getUser().getId());
 
             incomeService.addIncome(addIncomeDto);
             goalRepository.deleteById(goalId);

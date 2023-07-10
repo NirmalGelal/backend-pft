@@ -42,8 +42,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto registerUser(User user){
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
-        return dtoMapper.toUserDto(user);
+        if(userRepository.findByEmail(user.getEmail()).isEmpty()){
+            userRepository.save(user);
+            return dtoMapper.toUserDto(user);
+        }
+        return null;
     }
     @Override
     public List<UserResponseDto> viewUsers(){

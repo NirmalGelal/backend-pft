@@ -1,5 +1,6 @@
 package com.nirmal.personalfinancetracker.config.jwt;
 
+import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +15,7 @@ public class ApplicationConfig {
     private final UserRepository userRepository;
     @Bean
     public UserDetailsService userDetailsService(){
+
         return username -> userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
     }
