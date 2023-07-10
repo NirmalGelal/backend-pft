@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class UserDto {
+public class UserResponseDto {
     private int id;
     private String name;
     private String email;

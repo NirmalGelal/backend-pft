@@ -20,9 +20,7 @@ public class RoleController {
     public ResponseEntity<Response<Role>> addRole(@RequestBody Role role){
         Response<Role> response = new Response<>();
         Role role1 = roleServiceImpl.addRole(role);
-        response.setMessage("role added");
-        response.setStatus(true);
-        response.setData(role1);
+        response.successResponse(role1,"role added");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -30,18 +28,14 @@ public class RoleController {
     public ResponseEntity<Response<List<Role>>> viewRoleList(){
         Response<List<Role>> response = new Response<>();
         List<Role> roles = roleServiceImpl.viewRoleList();
-        response.setMessage("list successfully retrieved");
-        response.setStatus(true);
-        response.setData(roles);
+        response.successResponse(roles,"list successfully retrieved");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
     @GetMapping("/roles/{id}")
     public ResponseEntity<Response<Role>> viewRoleById(@PathVariable int id){
         Response<Role> response = new Response<>();
         Role role = roleServiceImpl.viewRoleById(id);
-        response.setMessage("role successfully retrieved");
-        response.setStatus(true);
-        response.setData(role);
+        response.successResponse(role,"role successfully retrieved");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
@@ -51,13 +45,10 @@ public class RoleController {
         Response<Role> response = new Response<>();
         Role role1 = roleServiceImpl.updateRole(id, role);
         if(role1!=null){
-            response.setMessage("updated successfully");
-            response.setStatus(true);
-            response.setData(role1);
+            response.successResponse(role1,"updated successfully");
             return new ResponseEntity<>(response,HttpStatus.OK);
         }
-        response.setMessage("invalid Id");
-        response.setStatus(false);
+        response.failureResponse("invalid Id");
         return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
     }
 
@@ -65,15 +56,11 @@ public class RoleController {
     public ResponseEntity<Response<String>> deleteRole(@PathVariable int id){
         Response<String> response = new Response<>();
         String data = roleServiceImpl.deleteRole(id);
-        if(data=="success"){
-            response.setMessage("deleted successfully");
-            response.setData(data);
-            response.setStatus(true);
+        if(data.equals("success")){
+            response.successResponse(data,"deleted successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        response.setMessage("invalid Id");
-        response.setStatus(false);
-        response.setData(data);
+        response.failureResponse("invalid Id");
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 }

@@ -1,11 +1,13 @@
 package com.nirmal.personalfinancetracker.service.impl;
 
-import com.nirmal.personalfinancetracker.dto.response.UserDto;
+import com.nirmal.personalfinancetracker.dto.request.AuthenticationRequest;
+import com.nirmal.personalfinancetracker.dto.response.UserResponseDto;
 import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.UserRepository;
-import com.nirmal.personalfinancetracker.service.DtoMapper;
 import com.nirmal.personalfinancetracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,24 +23,40 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private DtoMapperImpl dtoMapper;
+    @Autowired
+    private UserDetailsService userDetailsService;
+
     @Override
-    public UserDto registerUser(User user){
+    public UserDetails authenticateUser(AuthenticationRequest data) {
+        UserDetails user = userDetailsService.loadUserByUsername(data.getEmail());
+        if(checkPassword(data,user)){
+            return user;
+        }
+        return null;
+    }
+
+    private boolean checkPassword(AuthenticationRequest data, UserDetails user) {
+        return (user != null && passwordEncoder.matches(data.getPassword(), user.getPassword()));
+    }
+
+    @Override
+    public UserResponseDto registerUser(User user){
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return dtoMapper.toUserDto(user);
     }
     @Override
-    public List<UserDto> viewUsers(){
+    public List<UserResponseDto> viewUsers(){
         List<User> users = userRepository.findAll();
-        List<UserDto> userDtos = new ArrayList<>();
+        List<UserResponseDto> userResponseDtos = new ArrayList<>();
         for(User user:users) {
-            userDtos.add(dtoMapper.toUserDto(user));
+            userResponseDtos.add(dtoMapper.toUserDto(user));
         }
-        return userDtos;
+        return userResponseDtos;
     }
 
     @Override
-    public UserDto viewUserById(int id) {
+    public UserResponseDto viewUserById(int id) {
         Optional<User> userOptional = userRepository.findById(id);
         return userOptional.map(user -> dtoMapper.toUserDto(user)).orElse(null);
     }
@@ -53,7 +71,7 @@ public class UserServiceImpl implements UserService {
         return "user with id: "+id+ " not present.";
     }
     @Override
-    public UserDto updateUser(int userId, User user){
+    public UserResponseDto updateUser(int userId, User user){
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()){
             return null;

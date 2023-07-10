@@ -1,15 +1,20 @@
 package com.nirmal.personalfinancetracker.service.impl;
 
+import com.nirmal.personalfinancetracker.dto.request.UserRequestDto;
 import com.nirmal.personalfinancetracker.dto.response.*;
 import com.nirmal.personalfinancetracker.model.*;
+import com.nirmal.personalfinancetracker.repository.RoleRepository;
 import com.nirmal.personalfinancetracker.service.DtoMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class DtoMapperImpl implements DtoMapper {
+    @Autowired
+    private RoleRepository roleRepository;
     @Override
-    public UserDto toUserDto(User user) {
-        return UserDto.builder()
+    public UserResponseDto toUserDto(User user) {
+        return UserResponseDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
@@ -80,5 +85,17 @@ public class DtoMapperImpl implements DtoMapper {
                 .expenseId(expense.getId())
                 .data(data)
                 .build();
+    }
+
+    @Override
+    public User toUserEntity(UserRequestDto userRequestDto) {
+        User user = new User();
+        user.setName(userRequestDto.getName());
+        user.setEmail(userRequestDto.getEmail());
+        user.setPassword(userRequestDto.getPassword());
+        user.setRoleId(roleRepository.findByRole(userRequestDto.getRole()));
+        user.setPhoneNumber(userRequestDto.getPhoneNumber());
+        user.setAddress(userRequestDto.getAddress());
+        return user;
     }
 }

@@ -1,7 +1,7 @@
 package com.nirmal.personalfinancetracker.Controller;
 
 import com.nirmal.personalfinancetracker.dto.response.Response;
-import com.nirmal.personalfinancetracker.dto.response.UserDto;
+import com.nirmal.personalfinancetracker.dto.response.UserResponseDto;
 import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.service.impl.DtoMapperImpl;
 import com.nirmal.personalfinancetracker.service.impl.UserServiceImpl;
@@ -21,35 +21,35 @@ public class UserController {
     private DtoMapperImpl dtoMapper;
 
     @PostMapping("/user")
-    public ResponseEntity<Response<UserDto>> registerUser(@RequestBody User user) {
-        Response<UserDto> response = new Response<>();
-        UserDto userDto = userServiceImpl.registerUser(user);
+    public ResponseEntity<Response<UserResponseDto>> registerUser(@RequestBody User user) {
+        Response<UserResponseDto> response = new Response<>();
+        UserResponseDto userResponseDto = userServiceImpl.registerUser(user);
         response.setStatus(true);
-        response.setData(userDto);
+        response.setData(userResponseDto);
         response.setMessage("user registered successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/users")
-    public ResponseEntity<Response<List<UserDto>>> viewUserList() {
-        Response<List<UserDto>> response = new Response<>();
-        List<UserDto> userDtos = userServiceImpl.viewUsers();
-        if (!userDtos.isEmpty()) {
-            response.setData(userDtos);
+    public ResponseEntity<Response<List<UserResponseDto>>> viewUserList() {
+        Response<List<UserResponseDto>> response = new Response<>();
+        List<UserResponseDto> userResponseDtos = userServiceImpl.viewUsers();
+        if (!userResponseDtos.isEmpty()) {
+            response.setData(userResponseDtos);
             response.setStatus(true);
             response.setMessage("list retrieved successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
         response.setStatus(false);
         response.setMessage("database is empty");
-        response.setData(userDtos);
+        response.setData(userResponseDtos);
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<Response<UserDto>> viewUserById(@PathVariable int id) {
-        Response<UserDto> response = new Response<>();
-        UserDto user = userServiceImpl.viewUserById(id);
+    public ResponseEntity<Response<UserResponseDto>> viewUserById(@PathVariable int id) {
+        Response<UserResponseDto> response = new Response<>();
+        UserResponseDto user = userServiceImpl.viewUserById(id);
         if (user != null) {
             response.setData(user);
             response.setStatus(true);
@@ -63,9 +63,9 @@ public class UserController {
     }
 
     @PutMapping("/user/{id}")
-    public ResponseEntity<Response<UserDto>> editUser(@PathVariable int id, @RequestBody User user) {
-        Response<UserDto> response = new Response<>();
-        UserDto user1 = userServiceImpl.updateUser(id, user);
+    public ResponseEntity<Response<UserResponseDto>> editUser(@PathVariable int id, @RequestBody User user) {
+        Response<UserResponseDto> response = new Response<>();
+        UserResponseDto user1 = userServiceImpl.updateUser(id, user);
         if (user1 != null) {
             response.successResponse(user1,"user updated successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
