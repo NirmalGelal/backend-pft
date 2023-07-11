@@ -14,6 +14,7 @@ import com.nirmal.personalfinancetracker.repository.UserRepository;
 import com.nirmal.personalfinancetracker.service.DtoMapper;
 import com.nirmal.personalfinancetracker.service.GoalService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -27,7 +28,7 @@ public class GoalServiceImpl implements GoalService {
     @Autowired
     private GoalRepository goalRepository;
     @Autowired
-    private UserRepository userRepository;
+    private UserServiceImpl userServiceImpl;
     @Autowired
     private IncomeServiceImpl incomeService;
     @Autowired
@@ -36,7 +37,7 @@ public class GoalServiceImpl implements GoalService {
     @Override
     public GoalDto addGoal(AddGoalDto addGoalDto) {
         Goal goal = new Goal();
-        User user = userRepository.findById(addGoalDto.getUserId()).get();
+        User user = userServiceImpl.getCurrentUser();
         goal.setUser(user);
         goal.setName(addGoalDto.getName());
         goal.setStatus("progress");
@@ -46,8 +47,10 @@ public class GoalServiceImpl implements GoalService {
     }
 
     @Override
+    @PreAuthorize("hasRole('USER')")
     public List<GoalDto> viewGoalList() {
-        List<Goal> goals = goalRepository.findAll();
+        User user = userServiceImpl.getCurrentUser();
+        List<Goal> goals = goalRepository.findAllByUserId(user.getId());
         List<GoalDto> goalDtos = new ArrayList<>();
         for (Goal goal:
              goals) {
@@ -59,16 +62,21 @@ public class GoalServiceImpl implements GoalService {
     @Override
     public GoalDto viewGoalById(int goalId) {
         Optional<Goal> goal = goalRepository.findById(goalId);
-        return goal.map(value -> dtoMapper.toGoalDto(value)).orElse(null);
+        User user = userServiceImpl.getCurrentUser();
+        if(goal.isPresent() && goal.get().getUser().getId() == user.getId()){
+            return dtoMapper.toGoalDto(goal.get());
+        }
+        return null;
     }
 
     @Override
     public GoalDto updateGoal(int goalId, AddGoalDto addGoalDto) {
         Optional<Goal> goalOptional = goalRepository.findById(goalId);
-        if(goalOptional.isPresent()){
+        User user = userServiceImpl.getCurrentUser();
+        if(goalOptional.isPresent() && goalOptional.get().getUser().getId() == user.getId()){
             Goal goal = new Goal();
             goal.setId(goalOptional.get().getId());
-            goal.setUser(userRepository.findById(addGoalDto.getUserId()).get());
+            goal.setUser(user);
             goal.setName(addGoalDto.getName());
             goal.setTotalAmount(addGoalDto.getTotalAmount());
             goal.setAmountSaved(goalOptional.get().getAmountSaved());
@@ -88,7 +96,8 @@ public class GoalServiceImpl implements GoalService {
     @Override
     public String deleteGoal(int goalId) {
         Optional<Goal> goal = goalRepository.findById(goalId);
-        if(goal.isPresent()){
+        User user = userServiceImpl.getCurrentUser();
+        if(goal.isPresent() && goal.get().getUser().getId() == user.getId()){
             if(goal.get().getAmountSaved().compareTo(BigDecimal.ZERO) == 0){
                 goalRepository.deleteById(goalId);
                 return "success";
@@ -96,6 +105,7 @@ public class GoalServiceImpl implements GoalService {
             BigDecimal amount = goal.get().getAmountSaved();
 
             AddIncomeDto addIncomeDto = new AddIncomeDto();
+            addIncomeDto.setUserId(user.getId());
             addIncomeDto.setAmount(amount);
             addIncomeDto.setDescription("income from the saved goal: "+goal.get().getName());
             addIncomeDto.setCategory(IncomeEnum.OTHER);
@@ -105,7 +115,7 @@ public class GoalServiceImpl implements GoalService {
             return "success";
 
         }
-        return "goal with id: "+goalId+ " not present.";
+        return "unauthorized user";
     }
 
     @Override

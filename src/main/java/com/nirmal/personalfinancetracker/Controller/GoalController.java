@@ -7,6 +7,7 @@ import com.nirmal.personalfinancetracker.service.impl.GoalServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,14 +20,16 @@ public class GoalController {
     private GoalServiceImpl goalServiceImpl;
 
     @PostMapping("/goal")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Response<GoalDto>> addGoal(@RequestBody AddGoalDto addGoalDto){
         Response<GoalDto> response = new Response<>();
         GoalDto goalDto = goalServiceImpl.addGoal(addGoalDto);
-        response.successResponse(goalDto,"goalDto added successfully");
+        response.successResponse(goalDto,"goal   added successfully");
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/goals")
+    @GetMapping("/goal")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Response<List<GoalDto>>> viewGoalList(){
         Response<List<GoalDto>> response = new Response<>();
         List<GoalDto> goalDtos = goalServiceImpl.viewGoalList();
@@ -34,39 +37,39 @@ public class GoalController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/goals/{id}")
-    public ResponseEntity<Response<GoalDto>> viewGoalById(@PathVariable int id){
+    @GetMapping("/goal/{goalId}")
+    public ResponseEntity<Response<GoalDto>> viewGoalById(@PathVariable int goalId){
         Response<GoalDto> response = new Response<>();
-        GoalDto goalDto = goalServiceImpl.viewGoalById(id);
+        GoalDto goalDto = goalServiceImpl.viewGoalById(goalId);
         if(goalDto!=null){
-            response.successResponse(goalDto,"goalDto retrieved successfully");
+            response.successResponse(goalDto,"goal retrieved successfully");
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
-        response.failureResponse("invalid Id");
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        response.failureResponse("user not authorized");
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
-    @PutMapping("/goal/{id}")
-    public ResponseEntity<Response<GoalDto>> updateGoal(@PathVariable int id, @RequestBody AddGoalDto addGoalDto){
+    @PutMapping("/goal/{goalId}")
+    public ResponseEntity<Response<GoalDto>> updateGoal(@PathVariable int goalId, @RequestBody AddGoalDto addGoalDto){
         Response<GoalDto> response = new Response<>();
-        GoalDto goalDto = goalServiceImpl.updateGoal(id,addGoalDto);
+        GoalDto goalDto = goalServiceImpl.updateGoal(goalId,addGoalDto);
         if(goalDto!=null){
             response.successResponse(goalDto,"updated successfully");
             return new ResponseEntity<>(response,HttpStatus.OK);
         }
-        response.failureResponse("invalid Id");
-        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+        response.failureResponse("user not authorized");
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
-    @DeleteMapping("/goal/{id}")
-    public ResponseEntity<Response<String>> deleteGoal(@PathVariable int id){
+    @DeleteMapping("/goal/{goalId}")
+    public ResponseEntity<Response<String>> deleteGoal(@PathVariable int goalId){
         Response<String> response = new Response<>();
-        String data = goalServiceImpl.deleteGoal(id);
+        String data = goalServiceImpl.deleteGoal(goalId);
         if(data.equals("success")){
             response.successResponse(data,"deleted successfully");
             return new ResponseEntity<>(response,HttpStatus.OK);
         }
-        response.failureResponse("invalid Id");
-        return new ResponseEntity<>(response,HttpStatus.NOT_FOUND);
+        response.failureResponse("user not authorized");
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 }

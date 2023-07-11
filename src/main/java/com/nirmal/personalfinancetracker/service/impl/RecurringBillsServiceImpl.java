@@ -21,14 +21,14 @@ public class RecurringBillsServiceImpl implements RecurringBillsService {
     @Autowired
     private RecurringBillsRepository recurringBillsRepository;
     @Autowired
-    private UserRepository userRepository;
+    private UserServiceImpl userServiceImpl;
     @Autowired
     private DtoMapper dtoMapper;
 
     @Override
     public RecurringBillsResponseDto addRecurringBills(RecurringBillsRequestDto recurringBillsRequestDto){
         RecurringBills recurringBills = new RecurringBills();
-        User user = userRepository.findById(recurringBillsRequestDto.getUserId()).get();
+        User user = userServiceImpl.getCurrentUser();
         recurringBills.setUser(user);
         recurringBills.setName(recurringBillsRequestDto.getName());
         recurringBills.setRecurrence(recurringBillsRequestDto.getInterval());
@@ -40,7 +40,8 @@ public class RecurringBillsServiceImpl implements RecurringBillsService {
     }
     @Override
     public List<RecurringBillsResponseDto> viewRecurringBills(){
-        List<RecurringBills> recurringBills = recurringBillsRepository.findAll();
+        User user = userServiceImpl.getCurrentUser();
+        List<RecurringBills> recurringBills = recurringBillsRepository.findAllByUserId(user.getId());
         List<RecurringBillsResponseDto> recurringBillsResponseDtos = new ArrayList<>();
         for (RecurringBills bill:
              recurringBills) {
@@ -51,16 +52,21 @@ public class RecurringBillsServiceImpl implements RecurringBillsService {
 
     @Override
     public RecurringBillsResponseDto recurringBillsById(int recurringBillsId){
+        User user = userServiceImpl.getCurrentUser();
         Optional<RecurringBills> recurringBillsOptional = recurringBillsRepository.findById(recurringBillsId);
-        return recurringBillsOptional.map(recurringBills -> dtoMapper.toRecurringBillsDto(recurringBills)).orElse(null);
+        if(recurringBillsOptional.isPresent() && recurringBillsOptional.get().getUser().getId() == user.getId()){
+            return dtoMapper.toRecurringBillsDto(recurringBillsOptional.get());
+        }
+        return null;
     }
 
     @Override
     public RecurringBillsResponseDto updateRecurringBills(int recurringBillsId, RecurringBillsRequestDto recurringBillsRequestDto){
         Optional<RecurringBills> recurringBillsOptional = recurringBillsRepository.findById(recurringBillsId);
-        if(recurringBillsOptional.isPresent()){
+        User user = userServiceImpl.getCurrentUser();
+        if(recurringBillsOptional.isPresent() && recurringBillsOptional.get().getUser().getId() == user.getId()){
             RecurringBills recurringBills = recurringBillsOptional.get();
-            recurringBills.setUser(userRepository.findById(recurringBillsRequestDto.getUserId()).get());
+            recurringBills.setUser(user);
             recurringBills.setName(recurringBillsRequestDto.getName());
             recurringBills.setRecurrence(recurringBillsRequestDto.getInterval());
             recurringBills.setAmount(recurringBillsRequestDto.getAmount());
@@ -74,12 +80,13 @@ public class RecurringBillsServiceImpl implements RecurringBillsService {
     }
     @Override
     public String deleteRecurringBills(int recurringBillsId){
+        User user = userServiceImpl.getCurrentUser();
         Optional<RecurringBills> recurringBillsOptional = recurringBillsRepository.findById(recurringBillsId);
-        if(recurringBillsOptional.isPresent()){
+        if(recurringBillsOptional.isPresent() && recurringBillsOptional.get().getUser().getId() == user.getId()){
             recurringBillsRepository.deleteById(recurringBillsId);
             return "success";
         }
-        return "recurring bills with id: "+recurringBillsId+ " not present.";
+        return "failed";
     }
 
 

@@ -92,15 +92,15 @@ public class JwtService {
     }
 
     public AuthenticationResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        final String authHeader = request.getHeader("Refresh-Token");
         final String refreshToken;
         final String userEmail;
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+        if(authHeader == null){
             return null;
         }
 
-        refreshToken = authHeader.substring(7);
+        refreshToken = authHeader;
         userEmail = extractUsername(refreshToken);
 
         if(userEmail != null){

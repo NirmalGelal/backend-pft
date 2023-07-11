@@ -1,5 +1,7 @@
 package com.nirmal.personalfinancetracker.dto.response;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.nirmal.personalfinancetracker.enums.ExpenseEnum;
 import com.nirmal.personalfinancetracker.enums.RecurrenceEnum;
 import lombok.*;
@@ -12,6 +14,7 @@ import java.util.HashMap;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ExpenseResponseDto {
     private int id;
     private int userId;

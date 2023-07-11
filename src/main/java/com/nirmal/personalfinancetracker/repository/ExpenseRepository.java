@@ -13,7 +13,7 @@ import java.util.List;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
-
+    List<Expense> findAllByUserId(int userId);
     @Query("SELECT e FROM Expense e WHERE e.category = :category AND e.createdAt >= :start AND e.createdAt <= :end")
     public List<Expense> findTotalExpense(@Param("category") ExpenseEnum category, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 

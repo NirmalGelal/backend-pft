@@ -83,7 +83,7 @@ public class DtoMapperImpl implements DtoMapper {
         return GoalExpenseResponseDto.builder()
                 .goalId(goal.getId())
                 .expenseId(expense.getId())
-                .data(data)
+                .amount(expense.getAmount())
                 .build();
     }
 

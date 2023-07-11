@@ -5,11 +5,8 @@ import com.nirmal.personalfinancetracker.dto.response.IncomeDto;
 import com.nirmal.personalfinancetracker.model.Income;
 import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.IncomeRepository;
-import com.nirmal.personalfinancetracker.repository.UserRepository;
-import com.nirmal.personalfinancetracker.service.DtoMapper;
 import com.nirmal.personalfinancetracker.service.IncomeService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,13 +18,13 @@ public class IncomeServiceImpl implements IncomeService {
     @Autowired
     private IncomeRepository incomeRepository;
     @Autowired
-    private UserRepository userRepository;
+    UserServiceImpl userServiceImpl;
     @Autowired
     private DtoMapperImpl dtoMapper;
 
     @Override
     public IncomeDto addIncome(AddIncomeDto addIncomeDto) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User user = userServiceImpl.getCurrentUser();
         addIncomeDto.setUserId(user.getId());
         Income income = new Income();
         income.setUser(user);
@@ -63,10 +60,11 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public IncomeDto updateIncome(int incomeId, AddIncomeDto addIncomeDto) {
         Optional<Income> incomeOptional = incomeRepository.findById(incomeId);
-        if(incomeOptional.isPresent()){
+        User user = userServiceImpl.getCurrentUser();
+        if(incomeOptional.isPresent() && user.getId() == incomeOptional.get().getUser().getId()){
             Income income = incomeOptional.get();
-            User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             addIncomeDto.setUserId(user.getId());
+
             income.setId(incomeId);
             income.setUser(user);
             income.setCategory(addIncomeDto.getCategory());
@@ -82,9 +80,13 @@ public class IncomeServiceImpl implements IncomeService {
     @Override
     public String deleteIncome(int incomeId) {
         Optional<Income> income = incomeRepository.findById(incomeId);
+        User user = userServiceImpl.getCurrentUser();
         if(income.isPresent()){
-            incomeRepository.deleteById(incomeId);
-            return "success";
+            if(income.get().getUser().getId() == user.getId()){
+                incomeRepository.deleteById(incomeId);
+                return "success";
+            }
+            return "user not authorized";
         }
         return "income with id: "+incomeId+ " not present.";
     }

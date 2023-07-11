@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 @Data
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-
 public class GoalDto {
     private int id;
     private int userId;

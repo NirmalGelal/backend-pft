@@ -6,6 +6,7 @@ import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.UserRepository;
 import com.nirmal.personalfinancetracker.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -90,5 +91,7 @@ public class UserServiceImpl implements UserService {
         return dtoMapper.toUserDto(user1);
     }
 
-
+    public User getCurrentUser(){
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    }
 }

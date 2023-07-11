@@ -26,7 +26,7 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @GetMapping("/users")
+    @GetMapping("/user")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Response<List<UserResponseDto>>> viewUserList() {
         Response<List<UserResponseDto>> response = new Response<>();
@@ -41,7 +41,7 @@ public class UserController {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/user/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Response<UserResponseDto>> viewUserById(@PathVariable int id) {
         Response<UserResponseDto> response = new Response<>();
@@ -62,7 +62,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<Response<UserResponseDto>> editUser(@PathVariable int id, @RequestBody UserRequestDto userRequestDto, Authentication authentication) {
         Response<UserResponseDto> response = new Response<>();
-        if(id == ((User)authentication.getPrincipal()).getId()) {
+        if(id == userServiceImpl.getCurrentUser().getId()) {
             User user = dtoMapper.toUserEntity(userRequestDto);
             user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
             UserResponseDto user1 = userServiceImpl.updateUser(id, user);
@@ -79,7 +79,7 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<Response<String>> deleteUser(@PathVariable int id, Authentication authentication) {
         Response<String> response = new Response<>();
-        if(id == ((User)authentication.getPrincipal()).getId()) {
+        if(id == userServiceImpl.getCurrentUser().getId()) {
             String data = userServiceImpl.deleteUser(id);
             if (data.equals("success")) {
                 response.successResponse(data, "user deleted successfully");

@@ -1,6 +1,7 @@
 package com.nirmal.personalfinancetracker.service.impl;
 
 import com.nirmal.personalfinancetracker.dto.request.AddExpenseDto;
+import com.nirmal.personalfinancetracker.dto.request.AddGoalExpenseDto;
 import com.nirmal.personalfinancetracker.dto.response.ExpenseResponseDto;
 import com.nirmal.personalfinancetracker.dto.response.GoalExpenseResponseDto;
 import com.nirmal.personalfinancetracker.enums.ExpenseEnum;
@@ -10,10 +11,8 @@ import com.nirmal.personalfinancetracker.model.Goal;
 import com.nirmal.personalfinancetracker.model.User;
 import com.nirmal.personalfinancetracker.repository.ExpenseRepository;
 import com.nirmal.personalfinancetracker.repository.GoalRepository;
-import com.nirmal.personalfinancetracker.repository.UserRepository;
 import com.nirmal.personalfinancetracker.service.ExpenseService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,32 +31,34 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Autowired
     private ExpenseRepository expenseRepository;
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private GoalRepository goalRepository;
+    private UserServiceImpl userServiceImpl;
     @Autowired
     private BudgetLimitServiceImpl budgetLimitServiceImpl;
+    @Autowired
+    private GoalRepository goalRepository;
     @Autowired
     private GoalServiceImpl goalServiceImpl;
     @Autowired
     private DtoMapperImpl dtoMapper;
     @Override
     public ExpenseResponseDto addExpense(AddExpenseDto addExpenseDto) {
-        Optional<User> user = userRepository.findById(addExpenseDto.getUserId());
+        User user = userServiceImpl.getCurrentUser();
         Expense expense = new Expense();
-        expense.setUser(user.get());
+        expense.setUser(user);
         expense.setCategory(addExpenseDto.getCategory());
         expense.setAmount(addExpenseDto.getAmount());
         expense.setDescription(addExpenseDto.getDescription());
 
         expenseRepository.save(expense);
-        return dtoMapper.toExpenseDto(expense);
+        ExpenseResponseDto expenseResponseDto = dtoMapper.toExpenseDto(expense);
+        expenseResponseDto.setOverLimit(createHashMap(expense));
+        return expenseResponseDto;
     }
 
     public GoalExpenseResponseDto addExpense(int goalId, AddExpenseDto addExpenseDto) {
-        Optional<User> user = userRepository.findById(addExpenseDto.getUserId());
+        User user = userServiceImpl.getCurrentUser();
         Expense expense = new Expense();
-        expense.setUser(user.get());
+        expense.setUser(user);
         expense.setCategory(addExpenseDto.getCategory());
         expense.setDescription(addExpenseDto.getDescription());
         expense.setAmount(addExpenseDto.getAmount());
@@ -66,59 +67,79 @@ public class ExpenseServiceImpl implements ExpenseService {
         String data = goalServiceImpl.addAmountToGoal(expense.getAmount(), goalId);
         Optional<Goal> goalOptional = goalRepository.findById(goalId);
 
-        return dtoMapper.toGoalExpenseDto(expense,goalOptional.get(),data);
+        GoalExpenseResponseDto goalExpenseResponseDto = dtoMapper.toGoalExpenseDto(expense,goalOptional.get(),data);
+        goalExpenseResponseDto.setOverLimit(createHashMap(expense));
+        return goalExpenseResponseDto;
 
     }
     @Override
     public ExpenseResponseDto viewExpense(int expenseId) {
+        User user = userServiceImpl.getCurrentUser();
         Optional<Expense> expenseOptional = expenseRepository.findById(expenseId);
-        return expenseOptional.map(expense -> dtoMapper.toExpenseDto(expense)).orElse(null);
+        if(expenseOptional.isPresent() && expenseOptional.get().getUser().getId() == user.getId()){
+            ExpenseResponseDto expenseResponseDto = dtoMapper.toExpenseDto(expenseOptional.get());
+            expenseResponseDto.setOverLimit(createHashMap(expenseOptional.get()));
+            return expenseResponseDto;
+        }
+        return null;
     }
 
     @Override
     public List<ExpenseResponseDto> viewExpenseList() {
-        List<Expense> expenses = expenseRepository.findAll();
+        User user = userServiceImpl.getCurrentUser();
+        List<Expense> expenses = expenseRepository.findAllByUserId(user.getId());
         List<ExpenseResponseDto> expenseResponseDtos = new ArrayList<>();
         for (Expense expense:
              expenses) {
-            expenseResponseDtos.add(dtoMapper.toExpenseDto(expense));
+            ExpenseResponseDto expenseResponseDto = dtoMapper.toExpenseDto(expense);
+            expenseResponseDto.setOverLimit(createHashMap(expense));
+            expenseResponseDtos.add(expenseResponseDto);
         }
         return expenseResponseDtos;
     }
 
     @Override
     public ExpenseResponseDto updateExpense(int expenseId, AddExpenseDto addExpenseDto) {
-        Optional<User> user = userRepository.findById(addExpenseDto.getUserId());
-
-        Expense expense = expenseRepository.findById(expenseId).get();
-        expense.setUser(user.get());
-        expense.setCategory(addExpenseDto.getCategory());
-        expense.setDescription(addExpenseDto.getDescription());
-        expense.setAmount(addExpenseDto.getAmount());
-        expenseRepository.save(expense);
-
-        ExpenseResponseDto expenseResponseDto = dtoMapper.toExpenseDto(expense);
-        expenseResponseDto.setOverLimit(createHashMap(expense));
-        return expenseResponseDto;
-    }
-
-    @Override
-    public GoalExpenseResponseDto updateGoalExpense(int goalId, int expenseId, AddExpenseDto addExpenseDto) {
+        User user = userServiceImpl.getCurrentUser();
         Optional<Expense> expenseOptional = expenseRepository.findById(expenseId);
-        Optional<User> userOptional = userRepository.findById(addExpenseDto.getUserId());
-        Optional<Goal> goalOptional = goalRepository.findById(goalId);
-        if(expenseOptional.isPresent() && goalOptional.isPresent() && userOptional.isPresent()){
-
-            BigDecimal oldAmount = expenseOptional.get().getAmount();
-            BigDecimal newAmount = addExpenseDto.getAmount();
-            goalOptional.get().setAmountSaved(goalOptional.get().getAmountSaved().subtract(oldAmount).add(newAmount));
-            goalRepository.save(goalOptional.get());
-
+        if(expenseOptional.isPresent() && user.getId() == expenseOptional.get().getUser().getId()){
             Expense expense = expenseOptional.get();
-            expense.setUser(userOptional.get());
+            expense.setUser(user);
             expense.setCategory(addExpenseDto.getCategory());
             expense.setDescription(addExpenseDto.getDescription());
             expense.setAmount(addExpenseDto.getAmount());
+            expenseRepository.save(expense);
+
+            ExpenseResponseDto expenseResponseDto = dtoMapper.toExpenseDto(expense);
+            expenseResponseDto.setOverLimit(createHashMap(expense));
+            return expenseResponseDto;
+        }
+        return null;
+    }
+
+    @Override
+    public GoalExpenseResponseDto updateGoalExpense(int expenseId, AddGoalExpenseDto addGoalExpenseDto) {
+        Optional<Expense> expenseOptional = expenseRepository.findById(expenseId);
+        User user = userServiceImpl.getCurrentUser();
+        Optional<Goal> goalOptional = goalRepository.findById(addGoalExpenseDto.getGoalId());
+        if(expenseOptional.isPresent() && goalOptional.isPresent() && user.getId() == expenseOptional.get().getUser().getId()){
+
+            BigDecimal oldAmount = expenseOptional.get().getAmount();
+            BigDecimal newAmount = addGoalExpenseDto.getAmount();
+            goalOptional.get().setAmountSaved(goalOptional.get().getAmountSaved().subtract(oldAmount).add(newAmount));
+            if(goalOptional.get().getTotalAmount().compareTo(goalOptional.get().getAmountSaved())>0){
+                goalOptional.get().setStatus("progress");
+            }
+            else {
+                goalOptional.get().setStatus("achieved");
+            }
+            goalRepository.save(goalOptional.get());
+
+            Expense expense = expenseOptional.get();
+            expense.setUser(user);
+            expense.setCategory(addGoalExpenseDto.getCategory());
+            expense.setDescription(addGoalExpenseDto.getDescription());
+            expense.setAmount(addGoalExpenseDto.getAmount());
             expenseRepository.save(expenseOptional.get());
 
             GoalExpenseResponseDto goalExpenseResponseDto = dtoMapper.toGoalExpenseDto(expense,goalOptional.get(),"");
@@ -130,8 +151,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public String deleteExpense(int expenseId) {
+        User user = userServiceImpl.getCurrentUser();
         Optional<Expense> expense = expenseRepository.findById(expenseId);
-        if(expense.isPresent()){
+        if(expense.isPresent() && user.getId() == expense.get().getUser().getId()){
             if(expense.get().getCategory()!=ExpenseEnum.GOAL){
                 expenseRepository.deleteById(expenseId);
                 return "success";
@@ -140,21 +162,45 @@ public class ExpenseServiceImpl implements ExpenseService {
                 return "goal id not given";
             }
         }
-        return "expense with id: "+expenseId+ " not present.";
+        return "user unauthorized";
     }
 
     @Override
     public String deleteGoalExpense(int goalId, int expenseId) {
         Optional<Expense> expense = expenseRepository.findById(expenseId);
         Optional<Goal> goal = goalRepository.findById(goalId);
-        if(expense.isPresent() && goal.isPresent()){
+        User user = userServiceImpl.getCurrentUser();
+        if(expense.isPresent() && goal.isPresent() && user.getId() == expense.get().getUser().getId()){
             BigDecimal amountReduced = expense.get().getAmount();
             goal.get().setAmountSaved(goal.get().getAmountSaved().subtract(amountReduced));
+            if(goal.get().getTotalAmount().compareTo(goal.get().getAmountSaved())>0){
+                goal.get().setStatus("progress");
+            }
             goalRepository.save(goal.get());
             expenseRepository.deleteById(expenseId);
             return "success";
         }
         return "expense with id: "+expenseId+" or goal with id: "+ goalId +" not present";
+    }
+
+    public List<Boolean> checkLimitInInterval(Expense expense){
+        List<Boolean> checkLimitInInterval = new ArrayList<>();
+        for(RecurrenceEnum recurrenceEnum: RecurrenceEnum.values()){
+            BigDecimal totalExpenses = totalExpenseInInterval(expense.getCategory(),recurrenceEnum);
+            BigDecimal limit = budgetLimitServiceImpl.getLimit(expense.getCategory(),recurrenceEnum);
+            if(limit!=null) {
+                if(totalExpenses.compareTo(limit) > 0){
+                    checkLimitInInterval.add(true);
+                    continue;
+                }
+                else {
+                    checkLimitInInterval.add(false);
+                    continue;
+                }
+            }
+            checkLimitInInterval.add(null);
+        }
+        return checkLimitInInterval;
     }
 
     public BigDecimal totalExpenseInInterval(ExpenseEnum category, RecurrenceEnum interval){
@@ -187,31 +233,10 @@ public class ExpenseServiceImpl implements ExpenseService {
             sum = sum.add(expense.getAmount());
         }
 
-    return sum;
+        return sum;
     }
-
-    public List<Boolean> checkLimitInInterval(Expense expense){
-        List<Boolean> checkLimitInInterval = new ArrayList<>();
-        for(RecurrenceEnum recurrenceEnum: RecurrenceEnum.values()){
-            BigDecimal totalExpenses = totalExpenseInInterval(expense.getCategory(),recurrenceEnum);
-            BigDecimal limit = budgetLimitServiceImpl.getLimit(expense.getCategory(),recurrenceEnum);
-            if(limit!=null) {
-                if(totalExpenses.compareTo(limit) > 0){
-                    checkLimitInInterval.add(true);
-                    continue;
-                }
-                else {
-                    checkLimitInInterval.add(false);
-                    continue;
-                }
-            }
-            checkLimitInInterval.add(null);
-        }
-        return checkLimitInInterval;
-    }
-
     public HashMap<RecurrenceEnum,Boolean> createHashMap(Expense expense){
-        List<Boolean> checkLimitInInterval = checkLimitInInterval(expense);
+        List<Boolean> checkLimitInInterval = this.checkLimitInInterval(expense);
         RecurrenceEnum[] interval = RecurrenceEnum.values();
         HashMap<RecurrenceEnum,Boolean> overLimit = new HashMap<>();
         for(int i=0; i<interval.length;i++){
