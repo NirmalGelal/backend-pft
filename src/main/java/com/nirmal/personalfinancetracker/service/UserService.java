@@ -13,6 +13,7 @@ public interface UserService {
     public UserResponseDto registerUser(User user);
     public List<UserResponseDto> viewUsers();
     public UserResponseDto viewUserById(int id);
+    public UserResponseDto viewUserByEmail(String email);
     public String deleteUser(int id);
     public UserResponseDto updateUser(int userId, User user);
 

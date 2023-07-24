@@ -1,5 +1,6 @@
 package com.nirmal.personalfinancetracker.Controller;
 
+import com.nirmal.personalfinancetracker.dto.request.EmailDto;
 import com.nirmal.personalfinancetracker.dto.request.UserRequestDto;
 import com.nirmal.personalfinancetracker.dto.response.Response;
 import com.nirmal.personalfinancetracker.dto.response.UserResponseDto;
@@ -57,7 +58,18 @@ public class UserController {
         response.setData(null);
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
-
+    @PostMapping("/find-user")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<Response<UserResponseDto>> viewUserByEmail(@RequestBody EmailDto emailDto) {
+        Response<UserResponseDto> response = new Response<>();
+        UserResponseDto user = userServiceImpl.viewUserByEmail(emailDto.getEmail());
+        if (user != null) {
+            response.successResponse(user, "user retrieved successfully");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }
+        response.failureResponse("user not authorized");
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+    }
     @PutMapping("/user/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public ResponseEntity<Response<UserResponseDto>> editUser(@PathVariable int id, @RequestBody UserRequestDto userRequestDto, Authentication authentication) {

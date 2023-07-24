@@ -66,6 +66,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponseDto viewUserByEmail(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        User principalUser = getCurrentUser();
+        if(userOptional.isPresent() && userOptional.get().getId() == principalUser.getId()){
+            return dtoMapper.toUserDto(userOptional.get());
+        }
+        return null;
+    }
+
+    @Override
     public String deleteUser(int id){
         Optional<User> user = userRepository.findById(id);
         if(user.isPresent()){
